@@ -1,0 +1,7 @@
+public class AuthorView {
+   public void printAuthorDetails(Author author) {
+      System.out.println("Author:");
+      System.out.println("Name: " + author.getFirstName() + " " + author.getLastName());
+      System.out.println("Affiliation: " + author.getAffiliation());
+   }
+}
