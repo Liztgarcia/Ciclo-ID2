@@ -1,0 +1,52 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class AuthorController {
+   private Author author;
+   private String apiKey;
+   private String query;
+   private String baseUrl = "https://api.elsevier.com/content/search/author?apiKey=";
+
+   public AuthorController(Author author, String apiKey) {
+      this.author = author;
+      this.apiKey = apiKey;
+      this.query = author.getLastName() + "," + author.getFirstName();
+   }
+
+   public void searchAuthor() {
+      try {
+         URL url = new URL(baseUrl + apiKey + "&query=" + query);
+         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+         conn.setRequestMethod("GET");
+         conn.setRequestProperty("Accept", "application/json");
+
+         if (conn.getResponseCode() != 200) {
+            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+         }
+
+         BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+         String output;
+         StringBuffer response = new StringBuffer();
+
+         while ((output = br.readLine()) != null) {
+            response.append(output);
+         }
+
+         conn.disconnect();
+
+         JSONObject json = new JSONObject(response.toString());
+         JSONArray authorArray = json.getJSONObject("search-results").getJSONArray("entry");
+
+         if (authorArray.length() > 0) {
+            JSONObject authorObject = authorArray.getJSONObject(0);
+            author.setAffiliation(authorObject.getString("affiliation-current"));
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+   }
+}
